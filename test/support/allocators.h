@@ -10,6 +10,7 @@
 #ifndef ALLOCATORS_H
 #define ALLOCATORS_H
 
+#include <cstdlib>
 #include <type_traits>
 #include <utility>
 
@@ -30,7 +31,7 @@ public:
 
     static bool copy_called;
     static bool move_called;
-    static bool allocate_called;
+    static std::size_t allocate_called;
     static std::pair<T*, std::size_t> deallocate_called;
 
     A1(const A1& a) TEST_NOEXCEPT : id_(a.id()) {copy_called = true;}
@@ -45,12 +46,13 @@ public:
 
     T* allocate(std::size_t n)
     {
-        allocate_called = true;
-        return (T*)n;
+        allocate_called = n;
+        return static_cast<T*>(std::malloc(sizeof(T) * n));
     }
 
     void deallocate(T* p, std::size_t n)
     {
+        std::free(p);
         deallocate_called = std::pair<T*, std::size_t>(p, n);
     }
 
@@ -59,7 +61,7 @@ public:
 
 template <class T> bool A1<T>::copy_called = false;
 template <class T> bool A1<T>::move_called = false;
-template <class T> bool A1<T>::allocate_called = false;
+template <class T> std::size_t A1<T>::allocate_called = 0;
 template <class T> std::pair<T*, std::size_t> A1<T>::deallocate_called;
 
 template <class T, class U>
@@ -94,23 +96,36 @@ public:
 
     static bool copy_called;
     static bool move_called;
-    static bool allocate_called;
+    static const void *allocate_called;
 
     A2(const A2& a) TEST_NOEXCEPT : id_(a.id()) {copy_called = true;}
     A2(A2&& a)      TEST_NOEXCEPT : id_(a.id()) {move_called = true;}
     A2& operator=(const A2& a) TEST_NOEXCEPT { id_ = a.id(); copy_called = true; return *this;}
     A2& operator=(A2&& a)      TEST_NOEXCEPT { id_ = a.id(); move_called = true; return *this;}
 
+    template <class U>
+        A2(const A2<U>& a) TEST_NOEXCEPT : id_(a.id()) {copy_called = true;}
+
+    T* allocate(std::size_t n)
+    {
+        return static_cast<T*>(std::malloc(sizeof(T) * n));
+    }
+
     T* allocate(std::size_t n, const void* hint)
     {
-        allocate_called = true;
-        return (T*)hint;
+        allocate_called = hint;
+        return static_cast<T*>(std::malloc(sizeof(T) * n));
+    }
+
+    void deallocate(T* p, std::size_t n)
+    {
+        std::free(p);
     }
 };
 
 template <class T> bool A2<T>::copy_called = false;
 template <class T> bool A2<T>::move_called = false;
-template <class T> bool A2<T>::allocate_called = false;
+template <class T> const void *A2<T>::allocate_called = (const void*)0;
 
 template <class T, class U>
 inline
@@ -149,6 +164,19 @@ public:
     A3(A3&& a)      TEST_NOEXCEPT : id_(a.id())  {move_called = true;}
     A3& operator=(const A3& a) TEST_NOEXCEPT { id_ = a.id(); copy_called = true; return *this;}
     A3& operator=(A3&& a)      TEST_NOEXCEPT { id_ = a.id(); move_called = true; return *this;}
+
+    template <class U>
+        A3(const A3<U>& a) TEST_NOEXCEPT : id_(a.id()) {copy_called = true;}
+
+    T* allocate(std::size_t n)
+    {
+        return static_cast<T*>(std::malloc(sizeof(T) * n));
+    }
+
+    void deallocate(T* p, std::size_t n)
+    {
+        std::free(p);
+    }
 
     template <class U, class ...Args>
     void construct(U* p, Args&& ...args)

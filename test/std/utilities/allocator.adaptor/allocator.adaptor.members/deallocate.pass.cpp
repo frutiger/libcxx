@@ -26,20 +26,23 @@ int main()
     {
         typedef std::scoped_allocator_adaptor<A1<int>> A;
         A a;
-        a.deallocate((int*)10, 20);
-        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>((int*)10, 20)));
+        int* p = a.allocate(20);
+        a.deallocate(p, 20);
+        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>(p, 20)));
     }
     {
         typedef std::scoped_allocator_adaptor<A1<int>, A2<int>> A;
         A a;
-        a.deallocate((int*)10, 20);
-        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>((int*)10, 20)));
+        int* p = a.allocate(20);
+        a.deallocate(p, 20);
+        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>(p, 20)));
     }
     {
         typedef std::scoped_allocator_adaptor<A1<int>, A2<int>, A3<int>> A;
         A a;
-        a.deallocate((int*)10, 20);
-        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>((int*)10, 20)));
+        int* p = a.allocate(20);
+        a.deallocate(p, 20);
+        assert((A1<int>::deallocate_called == std::pair<int*, std::size_t>(p, 20)));
     }
 
 #endif  // _LIBCPP_HAS_NO_RVALUE_REFERENCES

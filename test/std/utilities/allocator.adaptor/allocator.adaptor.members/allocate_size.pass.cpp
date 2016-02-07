@@ -27,22 +27,22 @@ int main()
         typedef std::scoped_allocator_adaptor<A1<int>> A;
         A a;
         A1<int>::allocate_called = false;
-        assert(a.allocate(10) == (int*)10);
-        assert(A1<int>::allocate_called == true);
+        a.allocate(10);
+        assert(A1<int>::allocate_called == 10);
     }
     {
         typedef std::scoped_allocator_adaptor<A1<int>, A2<int>> A;
         A a;
         A1<int>::allocate_called = false;
-        assert(a.allocate(10) == (int*)10);
-        assert(A1<int>::allocate_called == true);
+        a.allocate(10);
+        assert(A1<int>::allocate_called == 10);
     }
     {
         typedef std::scoped_allocator_adaptor<A1<int>, A2<int>, A3<int>> A;
         A a;
         A1<int>::allocate_called = false;
-        assert(a.allocate(10) == (int*)10);
-        assert(A1<int>::allocate_called == true);
+        a.allocate(10);
+        assert(A1<int>::allocate_called == 10);
     }
 
 #endif  // _LIBCPP_HAS_NO_RVALUE_REFERENCES
