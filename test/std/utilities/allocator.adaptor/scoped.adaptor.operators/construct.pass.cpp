@@ -42,6 +42,21 @@ using List1 = std::list<T, IA1<T>>;
 
 }
 
+template <typename List>
+struct NextList {
+    typedef typename std::list<List, std::scoped_allocator_adaptor<IA1<List>>> type;
+};
+
+template <typename BaseType, std::size_t depth>
+struct MakeList {
+    typedef typename MakeList<typename NextList<BaseType>::type, depth - 1>::type type;
+};
+
+template <typename BaseType>
+struct MakeList<BaseType, 0> {
+    typedef BaseType type;
+};
+
 int main()
 {
     Instrumentation instrumentation;
@@ -78,5 +93,16 @@ int main()
         instrumentation.checkAllocsIncreased();
     }
     assert(instrumentation.allocs_.size() == 0);
+    {
+        typedef MakeList<int, 1>::type List;
+
+        IA1<char> subAlloc(&instrumentation);
+        std::scoped_allocator_adaptor<IA1<char>> alloc(subAlloc);
+        List list(alloc);
+        list.emplace_back();
+        instrumentation.checkAllocsIncreased();
+        list.emplace_back(list.back());
+        instrumentation.checkAllocsIncreased();
+    }
 }
 
